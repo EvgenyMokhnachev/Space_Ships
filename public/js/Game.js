@@ -7,9 +7,15 @@ var Game = (function(){
         this.height = 1080;
         this.renderer = PIXI.autoDetectRenderer(this.width, this.height,{backgroundColor : 0x000000, antialias: true, resolution: 1});
         this.renderer.view.style.maxWidth = '100%';
-        this.renderer.view.style.maxHeight = '100%';
-        document.body.appendChild(this.renderer.view);
+        this.renderer.view.style.maxHeight = window.innerHeight + 'px';
+        this.renderer.view.style.margin = '0 auto';
+        this.renderer.view.style.display = 'block';
+        var canvas = document.body.appendChild(this.renderer.view);
         this.stage = new PIXI.Container();
+
+        window.onresize = function(){
+            canvas.style.maxHeight = window.innerHeight + 'px';
+        };
 
         this.spaceShips = [];
         this.bullets = [];

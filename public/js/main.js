@@ -9,7 +9,7 @@ window.addEventListener('load', function(){
     }
 
     window.addEventListener('keydown', function(e){
-        game.setFullscreen();
+        // game.setFullscreen();
         game.initKeys(e.keyCode, true);
     });
 

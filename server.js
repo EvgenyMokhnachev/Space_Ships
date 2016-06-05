@@ -3,14 +3,9 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var path = require('path');
-//var fs = require('fs');
-//var crypto = require('crypto');
-//
-//var privateKey = fs.readFileSync('privatekey.pem').toString();
-//var certificate = fs.readFileSync('certificate.pem').toString();
-//var credentials = crypto.createCredentials({key: privateKey, cert: certificate, passphrase: '5300'});
-//
-//http.setSecure(credentials);
+
+var SpaceShip = require('./entities/SpaceShip');
+var Bullet = require('./entities/Bullet');
 
 http.listen(8080, function(){
     console.log('Server started on 8080 port');
@@ -22,8 +17,8 @@ app.get('/', function(req, res){
     res.sendfile('views/index.html');
 });
 
-var spaceShips = {};
-var bullets = {};
+var spaceShips = SpaceShip.items;
+var bullets = Bullet.items;
 
 update();
 function update(){
@@ -31,57 +26,28 @@ function update(){
         var spaceShip = spaceShips[i];
 
         if(spaceShip.keys.right) {
-            if(spaceShip.rotation >= Math.PI*2) spaceShip.rotation = 0;
-            spaceShip.rotation += 0.05;
+            spaceShip.turnRight();
         }
         if(spaceShip.keys.left) {
-            if(spaceShip.rotation <= Math.PI*(-2)) spaceShip.rotation = 0;
-            spaceShip.rotation -= 0.05;
+            spaceShip.turnLeft();
         }
         if(spaceShip.keys.up) {
-            if(spaceShip.position.y <= 1080 && spaceShip.position.y >= 0){
-                if(spaceShip.position.x >= 0 && spaceShip.position.x <= 1920){
-                    spaceShip.position.x += Math.sin(spaceShip.rotation)*spaceShip.speed;
-                    spaceShip.position.y -= Math.cos(spaceShip.rotation)*spaceShip.speed;
-                } else {
-                    spaceShip.position.x = spaceShip.position.x <= 0 ? 1 : 1919;
-                }
-            } else {
-                spaceShip.position.y = spaceShip.position.y <= 0 ? 1 : 1079;
-            }
+            spaceShip.moveUp();
         }
 
         if(spaceShip.keys.key1) {
             if(spaceShip.lastShot + 250 < Date.now()){
                 spaceShip.lastShot = Date.now();
-                var bulletId = spaceShip.id+(spaceShip.shotId++);
-                bullets[bulletId] = {
-                    id: bulletId,
-                    spaceShipId: spaceShip.id,
-                    position: {
-                        x: spaceShip.position.x,
-                        y: spaceShip.position.y
-                    },
-                    rotation: spaceShip.rotation,
-                    power: 50
-                }
+                var bullet = new Bullet(spaceShip);
+                bullets[bullet.id] = bullet;
             }
         }
 
         if(spaceShip.keys.key2) {
             if(spaceShip.lastShot + 50 < Date.now() && spaceShips[spaceShip.id].score >= 10){
                 spaceShip.lastShot = Date.now();
-                var bulletId = spaceShip.id+(spaceShip.shotId++);
-                bullets[bulletId] = {
-                    id: bulletId,
-                    spaceShipId: spaceShip.id,
-                    position: {
-                        x: spaceShip.position.x,
-                        y: spaceShip.position.y
-                    },
-                    rotation: spaceShip.rotation,
-                    power: 50
-                };
+                var bullet = new Bullet(spaceShip);
+                bullets[bullet.id] = bullet;
                 spaceShips[spaceShip.id].score -= 10;
             }
         }
@@ -116,53 +82,23 @@ function update(){
         if(spaceShip.keys.key5) {
             if(spaceShip.lastShot + 250 < Date.now()){
                 spaceShip.lastShot = Date.now();
-                var bulletId = spaceShip.id+(spaceShip.shotId++);
-                bullets[bulletId] = {
-                    id: bulletId,
-                    spaceShipId: spaceShip.id,
-                    position: {
-                        x: spaceShip.position.x,
-                        y: spaceShip.position.y
-                    },
-                    rotation: spaceShip.rotation + 0.1,
-                    power: 50
-                };
+                var bullet1 = new Bullet(spaceShip);
+                var bullet2 = new Bullet(spaceShip);
+                var bullet3 = new Bullet(spaceShip);
 
-                var bulletId = spaceShip.id+(spaceShip.shotId++);
-                bullets[bulletId] = {
-                    id: bulletId,
-                    spaceShipId: spaceShip.id,
-                    position: {
-                        x: spaceShip.position.x,
-                        y: spaceShip.position.y
-                    },
-                    rotation: spaceShip.rotation,
-                    power: 50
-                };
+                bullet1.rotation = bullet1.rotation + 0.1;
+                bullet3.rotation = bullet3.rotation - 0.1;
 
-                var bulletId = spaceShip.id+(spaceShip.shotId++);
-                bullets[bulletId] = {
-                    id: bulletId,
-                    spaceShipId: spaceShip.id,
-                    position: {
-                        x: spaceShip.position.x,
-                        y: spaceShip.position.y
-                    },
-                    rotation: spaceShip.rotation - 0.1,
-                    power: 50
-                }
+                bullets[bullet1.id] = bullet1;
+                bullets[bullet2.id] = bullet2;
+                bullets[bullet3.id] = bullet3;
             }
         }
     }
 
     for(var bulletIndex in bullets){
         var bullet = bullets[bulletIndex];
-        bullet.position.x += Math.sin(bullet.rotation)*5;
-        bullet.position.y -= Math.cos(bullet.rotation)*5;
-
-        if((bullet.position.x > 1920+100 || bullet.position.x < 0-100) || (bullet.position.y > 1080+100 || bullet.position.y < 0-100)){
-            delete bullets[bulletIndex];
-        } else {
+        if(bullet.move()){
             for(var shipId in spaceShips){
                 if(bullet.spaceShipId == spaceShips[shipId].id) continue;
                 if(spaceShips[shipId].lastDeath + 2000 > Date.now()) continue;
@@ -194,48 +130,7 @@ io.on('connection', function(socket){
     io.emit('connected', {id: socket.id});
     socket.emit('imConnected', {id: socket.id, spaceShips: spaceShips, bullets: bullets});
 
-    spaceShips[socket.id] = {
-        id: socket.id,
-        keys: {
-            up: false,
-            down: false,
-            right: false,
-            left: false,
-            key1: false,
-            key2: false,
-            key3: false,
-            key4: false,
-            key5: false,
-            key6: false,
-            key7: false,
-            key8: false,
-            key9: false,
-            key0: false
-        },
-        position: {
-            x: 1920/2,
-            y: 1080-100
-        },
-        rotation: 0,
-        lastShot: Date.now(),
-        shotId: 0,
-        score: 0,
-        lastDeath: Date.now(),
-        half: 100,
-        speed: 2,
-        acceleration: {
-            active: false,
-            normalSpeed: 2,
-            accelerationSpeed: 4,
-            duration: 2000,
-            lastUse: Date.now() - 10000
-        },
-        protectiveField: {
-            active: false,
-            lastUse: Date.now() - 20000,
-            duration: 5000
-        }
-    };
+    spaceShips[socket.id] = new SpaceShip(socket.id);
 
     socket.on('disconnect', function(){
         io.emit('disconnected', {id: socket.id});
