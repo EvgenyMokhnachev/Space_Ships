@@ -95,6 +95,7 @@ var Game = (function(){
     };
 
     Game.prototype.update = function(){
+        
     };
 
     Game.prototype.animate = function(){
@@ -102,19 +103,10 @@ var Game = (function(){
     };
 
     Game.prototype.initKeys = function(keyCode, value){
-        if(keyCode == 37) {
-            this.io.emit(!value ? 'upKeyLeft' : 'downKeyLeft');
-        }
-        if(keyCode == 38) {
-            this.io.emit(!value ? 'upKeyUp' : 'downKeyUp');
-        }
-        if(keyCode == 39) {
-            this.io.emit(!value ? 'upKeyRight' : 'downKeyRight');
-        }
-        if(keyCode == 40) {
-            this.io.emit(!value ? 'upKeyDown' : 'downKeyDown');
-        }
-
+        if(keyCode == 37) {this.io.emit(!value ? 'upKeyLeft' : 'downKeyLeft');}
+        if(keyCode == 38) {this.io.emit(!value ? 'upKeyUp' : 'downKeyUp');}
+        if(keyCode == 39) {this.io.emit(!value ? 'upKeyRight' : 'downKeyRight');}
+        if(keyCode == 40) {this.io.emit(!value ? 'upKeyDown' : 'downKeyDown');}
         if(keyCode == 48) this.io.emit(!value ? 'up0' : 'down0');
         if(keyCode == 49) this.io.emit(!value ? 'up1' : 'down1');
         if(keyCode == 50) this.io.emit(!value ? 'up2' : 'down2');

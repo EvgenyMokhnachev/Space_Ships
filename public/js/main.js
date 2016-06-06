@@ -15,6 +15,5 @@ window.addEventListener('load', function(){
 
     window.addEventListener('keyup', function(e){
         game.initKeys(e.keyCode, false);
-        //console.log(e.keyCode);
     });
 });
