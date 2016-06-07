@@ -3,8 +3,8 @@ window.addEventListener('load', function(){
 
     animate();
     function animate(){
-        game.animate();
         game.update();
+        game.animate();
         requestAnimationFrame(animate);
     }
 

@@ -1,7 +1,7 @@
 var Game = (function(){
     function Game(){
         var game = this;
-
+        
         this.id = null;
         this.width = 1920;
         this.height = 1080;
@@ -55,7 +55,6 @@ var Game = (function(){
         }
         controlsPanel.position.x = 1920/2 - controlsPanel.width/2;
         controlsPanel.position.y = 1080 - controlsPanel.height - 10;
-
         this.stage.addChild(controlsPanel);
 
         game.io.on('connected', function(responce){

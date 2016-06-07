@@ -8,8 +8,8 @@ var SpaceShip = require('./entities/SpaceShip');
 var Bullet = require('./entities/Bullet');
 var GameProcessing = require('./processing/GameProcessing');
 
-http.listen(8080, function(){
-    console.log('Server started on 8080 port');
+http.listen(8081, function(){
+    console.log('Server started on 8081 port');
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
